@@ -1,0 +1,14 @@
+[package]
+name = "bytelines"
+version = "1.0.0" # remember to update html_root_url
+authors = ["Isaac Whitfield <iw@whitfin.io>"]
+description = "Read input lines as byte slices for high efficiency"
+repository = "https://github.com/whitfin/bytelines"
+keywords = ["lines", "bytes"]
+categories = ["parsing", "text-processing"]
+readme = "README.md"
+edition = "2018"
+license = "MIT"
+
+[badges]
+travis-ci = { repository = "whitfin/bytelines" }
