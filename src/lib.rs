@@ -88,18 +88,23 @@ where
 /// went from a longer length value to a shorter length.
 ///
 /// ```rust
+/// use bytelines::*;
+/// use std::fs::File;
+/// use std::io::BufReader;
+///
 /// unsafe {
-///     # construct our iterator from our file input (1\n2\n3)
+///     // construct our iterator from our file input
+///     let file = File::open("./res/numbers.txt").unwrap();
 ///     let mut iter = BufReader::new(file).ref_byte_lines();
 ///
-///     # take the first line from the input
+///     // take the first line from the input
 ///     let line1 = iter.next();
-///     println!("{:?}", line1); // equivalent to bytes of "1"
+///     println!("{:?}", line1); // equivalent to bytes of "0"
 ///
-///     # take the second line from the input
+///     // take the second line from the input
 ///     let line2 = iter.next();
-///     println!("{:?}", line2); // equivalent to bytes of "2"
-///     println!("{:?}", line1); // also now equivalent to bytes of "2"
+///     println!("{:?}", line2); // equivalent to bytes of "1"
+///     println!("{:?}", line1); // also now equivalent to bytes of "1"
 /// }
 /// ```
 ///
