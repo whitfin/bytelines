@@ -10,6 +10,7 @@
 //! Performance of [ByteLines](enum.ByteLines.html) is very close to that of
 //! writing a `loop` manually, whereas [RefByteLines](enum.RefByteLines.html)
 //! is practically identical due to the avoidance of "unnecessary" allocations.
+#![doc(html_root_url = "https://docs.rs/bytelines/1.0.1")]
 use std::io::BufRead;
 use std::marker::PhantomData;
 
