@@ -7,143 +7,82 @@
 //! `lines` function inside the `BufRead` trait, except that the bytes which
 //! precede the line delimiter are not validated.
 //!
-//! Performance of [ByteLines](enum.ByteLines.html) is very close to that of
-//! writing a `loop` manually, whereas [RefByteLines](enum.RefByteLines.html)
-//! is practically identical due to the avoidance of "unnecessary" allocations.
+//! Performance of [ByteLines](enum.ByteLines.html) is practically identical
+//! to that of writing a `loop` manually, due to the avoidance of allocations.
 #![doc(html_root_url = "https://docs.rs/bytelines/1.0.1")]
 use std::io::BufRead;
-use std::marker::PhantomData;
 
 /// Represents anything which can provide iterators of byte lines.
-pub trait ByteLinesReader<'a, B>
+pub trait ByteLinesReader<B>
 where
     B: BufRead,
 {
-    /// Returns an iterator over the lines of this reader (as `Vec<u8>`).
+    /// Returns an structure used to iterate the lines of this reader as &[u8].
     ///
     /// Just like the equivalent in the standard library, the iterator returned
     /// from this function will yield instances of `io::Result<String>`. Each
     /// string returned will not have a newline byte (the 0xA byte) or CRLF
     /// (0xD, 0xA bytes) at the end.
-    fn byte_lines(self) -> ByteLines<'a, B>;
-
-    /// Returns an iterator over the lines of this reader (as `&[u8]`).
-    ///
-    /// This method operates in the same way as [byte_lines](#method.byte_lines),
-    /// except that the iterated values are references to the internal byte buffer.
-    /// Due to this, you can only safely hold a single line at any given time, and
-    /// as such this method is marked as `unsafe`. If you're using usual loop syntax
-    /// of `for $x in $y` your code will not come across this unsafe contract.
-    ///
-    /// When performance is important, this method should be used rather than
-    /// [byte_lines](#method.byte_lines) as there is only a single buffer
-    /// allocation (disregarding any potential resizing that may be required),
-    /// whereas [byte_lines](#method.byte_lines) will allocate a `Vec<u8>` for
-    /// each input line and provide ownership.
-    unsafe fn ref_byte_lines(self) -> RefByteLines<'a, B>;
+    fn byte_lines(self) -> ByteLines<B>;
 }
 
 /// Blanket implementation for all `BufRead`.
-impl<'a, B> ByteLinesReader<'a, B> for B
+impl<B> ByteLinesReader<B> for B
 where
     B: BufRead,
 {
-    /// Returns an iterator over the lines of this reader (as `Vec<u8>`).
-    fn byte_lines(self) -> ByteLines<'a, Self> {
+    /// Returns an structure used to iterate the lines of this reader as &[u8].
+    fn byte_lines(self) -> ByteLines<Self> {
         ByteLines {
-            inner: unsafe { self.ref_byte_lines() },
-        }
-    }
-
-    /// Returns an iterator over the lines of this reader (as `&[u8]`).
-    unsafe fn ref_byte_lines(self) -> RefByteLines<'a, Self> {
-        RefByteLines {
             buffer: Vec::new(),
             reader: self,
-            marker: PhantomData,
         }
     }
 }
 
-/// Provides a safe iterator over lines of input as byte vectors (`Vec<u8>`).
+/// Provides iteration over bytes of input, split by line.
 ///
-/// Internally, this iterator delegates to `RefByteLines` - the only difference
-/// being that this iterator will allocate a vector for each reference returned,
-/// thus making ownership clear and avoiding any issues with data races.
-pub struct ByteLines<'a, B>
-where
-    B: BufRead,
-{
-    inner: RefByteLines<'a, B>,
-}
-
-/// Provides an iterator over lines of input as byte slices (`&[u8]`).
-///
-/// This iterator requires opting in to the use of unsafe code, as there is a
-/// potential data race if you call `next()` on the iterator twice. This iterator
-/// should only be used in a traditional `for $x in $y` syntax, otherwise values
-/// cannot be relied upon as being consistent.
-///
-/// Here is a demonstration of this issue in action using a very basic clash of
-/// the same length. Note that you might (in some cases) get mixed input if you
-/// went from a longer length value to a shorter length.
+/// Unlike the implementation in the standard library, this requires
+/// no allocations and simply references the input lines from the
+/// internal buffer. In order to do this safely, we must sacrifice
+/// the `Iterator` API, and operate using `while` syntax:
 ///
 /// ```rust
 /// use bytelines::*;
 /// use std::fs::File;
 /// use std::io::BufReader;
 ///
-/// unsafe {
-///     // construct our iterator from our file input
-///     let file = File::open("./res/numbers.txt").unwrap();
-///     let mut iter = BufReader::new(file).ref_byte_lines();
+/// // construct our iterator from our file input
+/// let file = File::open("./res/numbers.txt").unwrap();
+/// let mut lines = BufReader::new(file).byte_lines();
 ///
-///     // take the first line from the input
-///     let line1 = iter.next();
-///     println!("{:?}", line1); // equivalent to bytes of "0"
-///
-///     // take the second line from the input
-///     let line2 = iter.next();
-///     println!("{:?}", line2); // equivalent to bytes of "1"
-///     println!("{:?}", line1); // also now equivalent to bytes of "1"
+/// // walk our lines using `while` syntax
+/// while let Some(line) = lines.next() {
+///     // do something with the line, which is &[u8]
 /// }
 /// ```
-///
-/// This implmentation is much more memory efficient than `ByteLines` (and more
-/// performant), and so should be used in performance critical code blocks. As
-/// a small aside, `ByteLines` simply delegates to this struct internally and
-/// provides an allocation on top to enforce all ownership correctly.
-pub struct RefByteLines<'a, B>
+pub struct ByteLines<B>
 where
     B: BufRead,
 {
     buffer: Vec<u8>,
-    marker: PhantomData<&'a B>,
     reader: B,
 }
 
-/// Wrapping iterator to enforce ownership.
-impl<'a, B> Iterator for ByteLines<'a, B>
+impl<B> ByteLines<B>
 where
     B: BufRead,
 {
-    type Item = Result<Vec<u8>, std::io::Error>;
-
-    /// Retrieves the next line in the iterator (if any).
-    fn next(&mut self) -> Option<Result<Vec<u8>, std::io::Error>> {
-        self.inner.next().map(|r| r.map(|s| s.to_vec()))
+    /// Constructs a new `ByteLines` from an input `BufRead`.
+    pub fn new(buf: B) -> Self {
+        Self {
+            buffer: Vec::new(),
+            reader: buf,
+        }
     }
-}
 
-/// Base iterator for line retrieval.
-impl<'a, B> Iterator for RefByteLines<'a, B>
-where
-    B: BufRead,
-{
-    type Item = Result<&'a [u8], std::io::Error>;
-
-    /// Retrieves the next line in the iterator (if any).
-    fn next(&mut self) -> Option<Result<&'a [u8], std::io::Error>> {
+    /// Retrieves a reference to the next line of bytes in the reader (if any).
+    pub fn next(&mut self) -> Option<Result<&[u8], std::io::Error>> {
         // clear the main buffer
         self.buffer.clear();
 
@@ -166,17 +105,8 @@ where
                     }
                 }
 
-                // Here's the fun unsafe section; in order to provide a reference and avoid allocation,
-                // we need to extend the lifetime and so we do so here. This means that you're open to
-                // data races in the case you call `next` on an iterator twice, and maintain the values
-                // of each retrieved line (as the former will be invalidated to point to the bytes of
-                // the second). To avoid this, simply always use `for $x in $y` syntax when using this
-                // type of iteration directly (as you're never going to hold two lines at once).
-                unsafe {
-                    Some(Ok(std::mem::transmute::<&[u8], &'a [u8]>(
-                        &self.buffer[..n],
-                    )))
-                }
+                // pass back the byte slice
+                Some(Ok(&self.buffer[..n]))
             }
         }
     }
@@ -191,12 +121,15 @@ mod tests {
     #[test]
     fn test_basic_iterator() {
         let file = File::open("./res/numbers.txt").unwrap();
+        let mut brdr = BufReader::new(file).byte_lines();
+        let mut lines = Vec::new();
 
-        let lines: Vec<String> = BufReader::new(file)
-            .byte_lines()
-            .map(|line| line.unwrap())
-            .map(|line| String::from_utf8(line).unwrap())
-            .collect();
+        while let Some(line) = brdr.next() {
+            let line = line.unwrap().to_vec();
+            let line = String::from_utf8(line).unwrap();
+
+            lines.push(line);
+        }
 
         for i in 0..9 {
             assert_eq!(lines[i], format!("{}", i));
