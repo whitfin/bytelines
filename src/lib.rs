@@ -17,20 +17,10 @@ pub trait ByteLinesReader<B>
 where
     B: BufRead,
 {
-    /// Returns an structure used to iterate the lines of this reader as &[u8].
-    ///
-    /// Just like the equivalent in the standard library, the iterator returned
-    /// from this function will yield instances of `io::Result<String>`. Each
-    /// string returned will not have a newline byte (the 0xA byte) or CRLF
-    /// (0xD, 0xA bytes) at the end.
+    /// Returns an structure used to iterate the lines of this reader as `&[u8]`.
     fn byte_lines(self) -> ByteLines<B>;
 
-    /// Returns an iterator over the lines of this reader (as `Vec<u8>`).
-    ///
-    /// Just like the equivalent in the standard library, the iterator returned
-    /// from this function will yield instances of `io::Result<String>`. Each
-    /// string returned will not have a newline byte (the 0xA byte) or CRLF
-    /// (0xD, 0xA bytes) at the end.
+    /// Returns an iterator over the lines of this reader as `Vec<u8>`.
     fn byte_lines_iter(self) -> ByteLinesIter<B>;
 }
 
