@@ -9,7 +9,7 @@ This tool will be available via [Crates.io](https://crates.io/crates/bytelines),
 
 ```toml
 [dependencies]
-bytelines = "1.0"
+bytelines = "2.0"
 ```
 
 ### Usage
