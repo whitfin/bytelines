@@ -1,6 +1,6 @@
 [package]
 name = "bytelines"
-version = "2.0.0" # remember to update html_root_url
+version = "2.1.0" # remember to update html_root_url
 authors = ["Isaac Whitfield <iw@whitfin.io>"]
 description = "Read input lines as byte slices for high efficiency"
 repository = "https://github.com/whitfin/bytelines"
