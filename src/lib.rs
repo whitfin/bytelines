@@ -30,6 +30,7 @@ where
     B: BufRead,
 {
     /// Returns an structure used to iterate the lines of this reader as &[u8].
+    #[inline]
     fn byte_lines(self) -> ByteLines<Self> {
         ByteLines {
             buffer: Vec::new(),
@@ -38,6 +39,7 @@ where
     }
 
     /// Returns an iterator over the lines of this reader (as `Vec<u8>`).
+    #[inline]
     fn byte_lines_iter(self) -> ByteLinesIter<Self> {
         self.byte_lines().into_iter()
     }
@@ -145,6 +147,7 @@ where
     type IntoIter = ByteLinesIter<B>;
 
     /// Constructs an `ByteLinesIter` to provide an `Iterator` API.
+    #[inline]
     fn into_iter(self) -> ByteLinesIter<B> {
         ByteLinesIter { inner: self }
     }
@@ -183,6 +186,7 @@ where
     type Item = Result<Vec<u8>, std::io::Error>;
 
     /// Retrieves the next line in the iterator (if any).
+    #[inline]
     fn next(&mut self) -> Option<Result<Vec<u8>, std::io::Error>> {
         self.inner.next().map(|r| r.map(|s| s.to_vec()))
     }
