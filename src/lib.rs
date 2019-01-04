@@ -24,6 +24,14 @@ where
     /// string returned will not have a newline byte (the 0xA byte) or CRLF
     /// (0xD, 0xA bytes) at the end.
     fn byte_lines(self) -> ByteLines<B>;
+
+    /// Returns an iterator over the lines of this reader (as `Vec<u8>`).
+    ///
+    /// Just like the equivalent in the standard library, the iterator returned
+    /// from this function will yield instances of `io::Result<String>`. Each
+    /// string returned will not have a newline byte (the 0xA byte) or CRLF
+    /// (0xD, 0xA bytes) at the end.
+    fn byte_lines_iter(self) -> ByteLinesIter<B>;
 }
 
 /// Blanket implementation for all `BufRead`.
@@ -37,6 +45,11 @@ where
             buffer: Vec::new(),
             reader: self,
         }
+    }
+
+    /// Returns an iterator over the lines of this reader (as `Vec<u8>`).
+    fn byte_lines_iter(self) -> ByteLinesIter<Self> {
+        self.byte_lines().into_iter()
     }
 }
 

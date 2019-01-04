@@ -37,7 +37,7 @@ while let Some(line) in lines.next() {
 // an owned `Vec` to avoid potential memory safety issues. Although
 // there is an allocation here, the overhead should be negligible
 // except in cases where performance is paramount.
-for line in reader.byte_lines().into_iter() {
+for line in reader.byte_lines_iter() {
     // do something with the line
 }
 ```
