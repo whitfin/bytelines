@@ -61,6 +61,27 @@ where
 ///     // do something with the line, which is &[u8]
 /// }
 /// ```
+///
+/// For those who prefer the `Iterator` API, this structure implements
+/// the `IntoIterator` trait to provide it. This comes at the cost of
+/// an allocation of a `Vec` for each line in the `Iterator`. This is
+/// negligible in many cases, so often it comes down to which syntax
+/// is preferred:
+///
+/// ```rust
+/// use bytelines::*;
+/// use std::fs::File;
+/// use std::io::BufReader;
+///
+/// // construct our iterator from our file input
+/// let file = File::open("./res/numbers.txt").unwrap();
+/// let lines = BufReader::new(file).byte_lines();
+///
+/// // walk our lines using `for` syntax
+/// for line in lines.into_iter() {
+///     // do something with the line, which is Vec<u8>
+/// }
+/// ```
 pub struct ByteLines<B>
 where
     B: BufRead,
@@ -112,6 +133,58 @@ where
     }
 }
 
+/// `IntoIterator` conversion for `ByteLines` to provide `Iterator` APIs.
+impl<B> IntoIterator for ByteLines<B>
+where
+    B: BufRead,
+{
+    type Item = Result<Vec<u8>, std::io::Error>;
+    type IntoIter = ByteLinesIter<B>;
+
+    /// Constructs an `ByteLinesIter` to provide an `Iterator` API.
+    fn into_iter(self) -> ByteLinesIter<B> {
+        ByteLinesIter { inner: self }
+    }
+}
+
+/// `Iterator` implementation of `ByteLines` to provide `Iterator` APIs.
+///
+/// This structure enables developers the use of the `Iterator` API in
+/// their code, at the cost of an allocation per input line:
+///
+/// ```rust
+/// use bytelines::*;
+/// use std::fs::File;
+/// use std::io::BufReader;
+///
+/// // construct our iterator from our file input
+/// let file = File::open("./res/numbers.txt").unwrap();
+/// let lines = BufReader::new(file).byte_lines();
+///
+/// // walk our lines using `for` syntax
+/// for line in lines.into_iter() {
+///     // do something with the line, which is Vec<u8>
+/// }
+/// ```
+pub struct ByteLinesIter<B>
+where
+    B: BufRead,
+{
+    inner: ByteLines<B>,
+}
+
+impl<B> Iterator for ByteLinesIter<B>
+where
+    B: BufRead,
+{
+    type Item = Result<Vec<u8>, std::io::Error>;
+
+    /// Retrieves the next line in the iterator (if any).
+    fn next(&mut self) -> Option<Result<Vec<u8>, std::io::Error>> {
+        self.inner.next().map(|r| r.map(|s| s.to_vec()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,13 +192,30 @@ mod tests {
     use std::io::BufReader;
 
     #[test]
-    fn test_basic_iterator() {
+    fn test_basic_loop() {
         let file = File::open("./res/numbers.txt").unwrap();
         let mut brdr = BufReader::new(file).byte_lines();
         let mut lines = Vec::new();
 
         while let Some(line) = brdr.next() {
             let line = line.unwrap().to_vec();
+            let line = String::from_utf8(line).unwrap();
+
+            lines.push(line);
+        }
+
+        for i in 0..9 {
+            assert_eq!(lines[i], format!("{}", i));
+        }
+    }
+
+    #[test]
+    fn test_basic_iterator() {
+        let file = File::open("./res/numbers.txt").unwrap();
+        let mut lines = Vec::new();
+
+        for line in BufReader::new(file).byte_lines().into_iter() {
+            let line = line.unwrap();
             let line = String::from_utf8(line).unwrap();
 
             lines.push(line);

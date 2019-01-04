@@ -14,15 +14,32 @@ bytelines = "2.0"
 
 ### Usage
 
-It's quite simple; in the place you would typically call `lines` on a `BufRead` implementor, you can now call `byte_lines` to retrieve a structure used to walk over lines as `&[u8]` (and thus avoid allocations).
+It's quite simple; in the place you would typically call `lines` on a `BufRead` implementor, you can now call `byte_lines` to retrieve a structure used to walk over lines as `&[u8]` (and thus avoid allocations). There are two ways to use the API, and both are shown below:
 
 ```rust
+// our input file we're going to walk over lines of, and our reader
 let file = File::open("./my-input.txt").expect("able to open file");
-let mut lines = BufReader::new(file).byte_lines();
+let reader = BufReader::new(file);
 
+// Option 1: Walk using a `while` loop.
+//
+// This is the most performant option, as it avoids an allocation by
+// simply referencing bytes inside the reading structure. This means
+// that there's no copying at all, until the developer chooses to.
+let mut lines = reader.byte_lines();
 while let Some(line) in lines.next() {
+    // do something with the line
+}
+
+// Option 2: Use the `Iterator` trait.
+//
+// This is more idiomatic, but requires allocating each line into
+// an owned `Vec` to avoid potential memory safety issues. Although
+// there is an allocation here, the overhead should be negligible
+// except in cases where performance is paramount.
+for line in reader.byte_lines().into_iter() {
     // do something with the line
 }
 ```
 
-In the 1.x lineage of `bytelines`, the `Iterator` trait was implemented for `ByteLines` and thus allowed the typical `for $x in $y` syntax. As this required `unsafe` code, this has been removed in favour of the syntax above which allows a completely safe API without impacting the internal performance.
+This interface was introduced in the v2.x lineage of `bytelines`. The `Iterator` trait was previously implemented in v1.x, but required an `unsafe` contract in trying to be too idiomatic. This has since been fixed, and all unsafe code has been removed whilst providing `IntoIterator` implementations for those who prefer the cleaner syntax.
