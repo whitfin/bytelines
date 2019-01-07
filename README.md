@@ -20,13 +20,13 @@ It's quite simple; in the place you would typically call `lines` on a `BufRead` 
 // our input file we're going to walk over lines of, and our reader
 let file = File::open("./my-input.txt").expect("able to open file");
 let reader = BufReader::new(file);
+let mut lines = reader.byte_lines();
 
 // Option 1: Walk using a `while` loop.
 //
 // This is the most performant option, as it avoids an allocation by
 // simply referencing bytes inside the reading structure. This means
 // that there's no copying at all, until the developer chooses to.
-let mut lines = reader.byte_lines();
 while let Some(line) in lines.next() {
     // do something with the line
 }
@@ -37,7 +37,7 @@ while let Some(line) in lines.next() {
 // an owned `Vec` to avoid potential memory safety issues. Although
 // there is an allocation here, the overhead should be negligible
 // except in cases where performance is paramount.
-for line in reader.byte_lines_iter() {
+for line in lines.into_iter() {
     // do something with the line
 }
 ```
