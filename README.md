@@ -27,7 +27,7 @@ let mut lines = reader.byte_lines();
 // This is the most performant option, as it avoids an allocation by
 // simply referencing bytes inside the reading structure. This means
 // that there's no copying at all, until the developer chooses to.
-while let Some(line) in lines.next() {
+while let Some(line) = lines.next() {
     // do something with the line
 }
 
