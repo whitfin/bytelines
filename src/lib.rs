@@ -125,8 +125,8 @@ where
                 // always "pop" the delim
                 if self.buffer[n - 1] == b'\n' {
                     n -= 1;
-                    // also "pop" a leading \r
-                    if self.buffer[n - 1] == b'\r' {
+                    // also "pop" a potential leading \r
+                    if n > 0 && self.buffer[n - 1] == b'\r' {
                         n -= 1;
                     }
                 }
@@ -231,5 +231,21 @@ mod tests {
         for i in 0..9 {
             assert_eq!(lines[i], format!("{}", i));
         }
+    }
+
+    #[test]
+    fn test_empty_line() {
+        let file = File::open("./res/empty.txt").unwrap();
+        let mut lines = Vec::new();
+
+        for line in BufReader::new(file).byte_lines().into_iter() {
+            let line = line.unwrap();
+            let line = String::from_utf8(line).unwrap();
+
+            lines.push(line);
+        }
+
+        assert_eq!(lines.len(), 1);
+        assert_eq!(lines[0], "");
     }
 }
