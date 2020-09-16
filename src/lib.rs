@@ -17,10 +17,10 @@ pub trait ByteLinesReader<B>
 where
     B: BufRead,
 {
-    /// Returns an structure used to iterate the lines of this reader as `&[u8]`.
+    /// Returns a structure used to iterate the lines of this reader as `Result<&[u8], _>`.
     fn byte_lines(self) -> ByteLines<B>;
 
-    /// Returns an iterator over the lines of this reader as `Vec<u8>`.
+    /// Returns an iterator over the lines of this reader as `Result<Vec<u8>, _>`.
     fn byte_lines_iter(self) -> ByteLinesIter<B>;
 }
 
@@ -29,7 +29,7 @@ impl<B> ByteLinesReader<B> for B
 where
     B: BufRead,
 {
-    /// Returns an structure used to iterate the lines of this reader as &[u8].
+    /// Returns a structure used to iterate the lines of this reader as Result<&[u8], _>.
     #[inline]
     fn byte_lines(self) -> ByteLines<Self> {
         ByteLines {
@@ -38,7 +38,7 @@ where
         }
     }
 
-    /// Returns an iterator over the lines of this reader (as `Vec<u8>`).
+    /// Returns an iterator over the lines of this reader (as `Result<Vec<u8>, _>`).
     #[inline]
     fn byte_lines_iter(self) -> ByteLinesIter<Self> {
         self.byte_lines().into_iter()
@@ -63,7 +63,7 @@ where
 ///
 /// // walk our lines using `while` syntax
 /// while let Some(line) = lines.next() {
-///     // do something with the line, which is &[u8]
+///     // do something with the line, which is Result<&[u8], _>
 /// }
 /// ```
 ///
@@ -84,7 +84,7 @@ where
 ///
 /// // walk our lines using `for` syntax
 /// for line in lines.into_iter() {
-///     // do something with the line, which is Vec<u8>
+///     // do something with the line, which is Result<Vec<u8>, _>
 /// }
 /// ```
 pub struct ByteLines<B>
@@ -146,7 +146,7 @@ where
     type Item = Result<Vec<u8>, std::io::Error>;
     type IntoIter = ByteLinesIter<B>;
 
-    /// Constructs an `ByteLinesIter` to provide an `Iterator` API.
+    /// Constructs a `ByteLinesIter` to provide an `Iterator` API.
     #[inline]
     fn into_iter(self) -> ByteLinesIter<B> {
         ByteLinesIter { inner: self }
@@ -169,7 +169,7 @@ where
 ///
 /// // walk our lines using `for` syntax
 /// for line in lines.into_iter() {
-///     // do something with the line, which is Vec<u8>
+///     // do something with the line, which is Result<Vec<u8>, _>
 /// }
 /// ```
 pub struct ByteLinesIter<B>
