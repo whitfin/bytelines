@@ -20,7 +20,7 @@ It's quite simple; in the place you would typically call `lines` on a `BufRead` 
 // our input file we're going to walk over lines of, and our reader
 let file = File::open("./my-input.txt").expect("able to open file");
 let reader = BufReader::new(file);
-let mut lines = bytelines::from_std(reader);
+let mut lines = ByteLines::new(reader);
 
 // Option 1: Walk using a `while` loop.
 //
@@ -42,4 +42,19 @@ for line in lines.into_iter() {
 }
 ```
 
-This interface was introduced in the v2.x lineage of `bytelines`. The `Iterator` trait was previously implemented in v1.x, but required an `unsafe` contract in trying to be too idiomatic. This has since been fixed, and all unsafe code has been removed whilst providing `IntoIterator` implementations for those who prefer the cleaner syntax.
+As of v2.3 this crate includes fairly minimal support for Tokio, namely the `AsyncBufRead` trait. This looks fairly similar to the base APIs, and can be used in much the same way:
+
+
+```rust
+// configure our inputs again, using `AsyncByteLines`.
+let file = File::open("./my-input.txt").await?;
+let reader = BufReader::new(file);
+let mut lines = AsyncByteLines::new(reader);
+
+// walk through all lines using a `while` loop
+while let Some(line) = lines.next().await? {
+    // do something with the line
+}
+```
+
+The main difference is that this yields `Option<&[u8]>` instead of `Option<Result<&[u8], _>>` for consistency with the exiting Tokio APIs. Also note that unlike the sync version of the API, there is no current support for an asynchronous `Stream` interface yet. This is planned in future when I have more time to work on this project.

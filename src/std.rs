@@ -15,7 +15,8 @@ use std::io::{BufRead, Error};
 ///
 /// // construct our iterator from our file input
 /// let file = File::open("./res/numbers.txt").unwrap();
-/// let mut lines = BufReader::new(file).byte_lines();
+/// let reader = BufReader::new(file);
+/// let mut lines = ByteLines::new(reader);
 ///
 /// // walk our lines using `while` syntax
 /// while let Some(line) = lines.next() {
@@ -36,7 +37,8 @@ use std::io::{BufRead, Error};
 ///
 /// // construct our iterator from our file input
 /// let file = File::open("./res/numbers.txt").unwrap();
-/// let lines = BufReader::new(file).byte_lines();
+/// let reader = BufReader::new(file);
+/// let mut lines = ByteLines::new(reader);
 ///
 /// // walk our lines using `for` syntax
 /// for line in lines.into_iter() {

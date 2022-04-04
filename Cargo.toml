@@ -9,3 +9,9 @@ categories = ["parsing", "text-processing"]
 readme = "README.md"
 edition = "2018"
 license = "MIT"
+
+[dependencies]
+tokio = { version = "1.14", features = ["fs", "io-util"]}
+
+[dev-dependencies]
+tokio = { version = "1.14", features = ["full"] }
