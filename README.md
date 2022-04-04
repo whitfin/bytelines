@@ -9,7 +9,7 @@ This tool will be available via [Crates.io](https://crates.io/crates/bytelines),
 
 ```toml
 [dependencies]
-bytelines = "2.3"
+bytelines = "2.4"
 ```
 
 ### Usage
@@ -42,7 +42,7 @@ for line in lines.into_iter() {
 }
 ```
 
-As of v2.3 this crate includes fairly minimal support for Tokio, namely the `AsyncBufRead` trait. This looks fairly similar to the base APIs, and can be used in much the same way:
+As of v2.3 this crate includes fairly minimal support for Tokio, namely the `AsyncBufRead` trait. This looks fairly similar to the base APIs, and can be used in much the same way.
 
 
 ```rust
@@ -55,6 +55,11 @@ let mut lines = AsyncByteLines::new(reader);
 while let Some(line) = lines.next().await? {
     // do something with the line
 }
+
+// walk through all lines using `Stream` APIs
+lines.into_stream().for_each(|line| {
+
+});
 ```
 
-The main difference is that this yields `Option<&[u8]>` instead of `Option<Result<&[u8], _>>` for consistency with the exiting Tokio APIs. Also note that unlike the sync version of the API, there is no current support for an asynchronous `Stream` interface yet. This is planned in future when I have more time to work on this project.
+The main difference is that the Tokio implementations yield `Result<Option<&[u8]>, _>` instead of `Option<Result<&[u8], _>>` for consistency with the exiting Tokio APIs.
