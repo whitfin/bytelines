@@ -14,13 +14,13 @@ bytelines = "2.2"
 
 ### Usage
 
-It's quite simple; in the place you would typically call `lines` on a `BufRead` implementor, you can now call `byte_lines` to retrieve a structure used to walk over lines as `&[u8]` (and thus avoid allocations). There are two ways to use the API, and both are shown below:
+It's quite simple; in the place you would typically call `lines` on a `BufRead` implementor, you can now use `bytelines` to retrieve a structure used to walk over lines as `&[u8]` (and thus avoid allocations). There are two ways to use the API, and both are shown below:
 
 ```rust
 // our input file we're going to walk over lines of, and our reader
 let file = File::open("./my-input.txt").expect("able to open file");
 let reader = BufReader::new(file);
-let mut lines = reader.byte_lines();
+let mut lines = bytelines::from_std(reader);
 
 // Option 1: Walk using a `while` loop.
 //

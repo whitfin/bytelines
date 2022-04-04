@@ -9,6 +9,3 @@ categories = ["parsing", "text-processing"]
 readme = "README.md"
 edition = "2018"
 license = "MIT"
-
-[badges]
-travis-ci = { repository = "whitfin/bytelines" }
