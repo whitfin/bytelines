@@ -1,6 +1,6 @@
 # bytelines
 [![Build Status](https://img.shields.io/github/actions/workflow/status/whitfin/bytelines/ci.yml)](https://github.com/whitfin/bytelines/actions)
-[![Crates.io](https://img.shields.io/crates/v/jbytelinesen.svg)](https://crates.io/crates/bytelines)
+[![Crates.io](https://img.shields.io/crates/v/bytelines.svg)](https://crates.io/crates/bytelines)
 
 This library provides an easy way to read in input lines as byte slices for high efficiency. It's basically [lines](https://doc.rust-lang.org/std/io/trait.BufRead.html#method.lines) from the standard library, but it reads each line as a byte slice (`&[u8]`). This performs significantly faster than `lines()` in the case you don't particularly care about unicode, and basically as fast as writing the loops out by hand. Although the code itself is somewhat trivial, I've had to roll this in at least 4 tools I've written recently and so I figured it was time to have a convenience crate for it.
 
