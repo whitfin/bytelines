@@ -11,7 +11,7 @@ edition = "2018"
 license = "MIT"
 
 [dependencies]
-futures = {version = "0.3", optional = true }
+futures-util = {version = "0.3", optional = true, default-features = false }
 tokio = { version = "1.14", features = ["fs", "io-util"], optional = true}
 
 [dev-dependencies]
@@ -19,4 +19,4 @@ tokio = { version = "1.14", features = ["full"] }
 
 [features]
 default = []
-tokio = ["dep:tokio", "futures"]
+tokio = ["dep:tokio", "futures-util"]

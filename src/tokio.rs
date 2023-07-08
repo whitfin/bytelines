@@ -1,5 +1,5 @@
 //! Module exposing APIs based around `AsyncBufRead` from Tokio.
-use futures::stream::{self, Stream};
+use futures_util::stream::{self, Stream};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt};
 
 use std::io::Error;
