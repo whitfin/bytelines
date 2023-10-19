@@ -84,7 +84,7 @@ where
 }
 
 impl<'a, B: BufRead> LendingIteratorItem<'a> for ByteLines<B> {
-    type T = Result<&'a [u8], Error>;
+    type Type = Result<&'a [u8], Error>;
 }
 
 impl<B: BufRead> LendingIterator for ByteLines<B> {

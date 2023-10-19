@@ -11,8 +11,7 @@ edition = "2018"
 license = "MIT"
 
 [dependencies]
-#hrtb-lending-iterator = "0.1.0"
-hrtb-lending-iterator = { git = "https://github.com/vigna/hrtb-lending-iterator-rs"}
+hrtb-lending-iterator = "0.2.0"
 futures = "0.3"
 tokio = { version = "1.14", features = ["fs", "io-util"] }
 
