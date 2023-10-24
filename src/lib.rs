@@ -21,6 +21,7 @@ mod util;
 // expose all public APIs to keep the v2.x interface the same
 pub use crate::std::{ByteLines, ByteLinesIter, ByteLinesReader};
 pub use crate::tokio::AsyncByteLines;
+pub use lender::*;
 
 /// Creates a new line reader from a stdlib `BufRead`.
 #[inline]

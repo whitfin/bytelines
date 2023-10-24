@@ -1,5 +1,5 @@
 //! Module exposing APIs based around `BufRead` from stdlib.
-use hrtb_lending_iterator::*;
+use lender::*;
 use std::io::{BufRead, Error};
 
 /// Provides iteration over bytes of input, split by line.
@@ -13,7 +13,6 @@ use std::io::{BufRead, Error};
 /// use bytelines::*;
 /// use std::fs::File;
 /// use std::io::BufReader;
-/// use hrtb_lending_iterator::*;
 ///
 /// // construct our iterator from our file input
 /// let file = File::open("./res/numbers.txt").unwrap();
@@ -83,13 +82,13 @@ where
     }
 }
 
-impl<'a, B: BufRead> LendingIteratorItem<'a> for ByteLines<B> {
-    type Type = Result<&'a [u8], Error>;
+impl<'a, B: BufRead> Lending<'a> for ByteLines<B> {
+    type Lend = Result<&'a [u8], Error>;
 }
 
-impl<B: BufRead> LendingIterator for ByteLines<B> {
+impl<B: BufRead> Lender for ByteLines<B> {
     /// Retrieves a reference to the next line of bytes in the reader (if any).
-    fn next(&mut self) -> Option<Item<'_, Self>> {
+    fn next(&mut self) -> Option<<Self as Lending>::Lend> {
         self.buffer.clear();
         crate::util::handle_line(
             self.reader.read_until(b'\n', &mut self.buffer),
@@ -221,8 +220,8 @@ mod tests {
     fn test_buf_read() {
         let buf_reader = BufReader::new(File::open("./res/numbers.txt").unwrap());
         let mut lines = Vec::new();
-
-        for_lend! { line in buf_reader.byte_lines() =>
+        let mut iter = buf_reader.byte_lines();
+        while let Some(line) = iter.next() {
             let line = line.unwrap();
             let line = String::from_utf8(line.to_vec()).unwrap();
             lines.push(line);
