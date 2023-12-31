@@ -1,4 +1,5 @@
 //! Module exposing APIs based around `BufRead` from stdlib.
+use lender::*;
 use std::io::{BufRead, Error};
 
 /// Provides iteration over bytes of input, split by line.
@@ -64,15 +65,6 @@ where
             reader: buf,
         }
     }
-
-    /// Retrieves a reference to the next line of bytes in the reader (if any).
-    pub fn next(&mut self) -> Option<Result<&[u8], Error>> {
-        self.buffer.clear();
-        crate::util::handle_line(
-            self.reader.read_until(b'\n', &mut self.buffer),
-            &mut self.buffer,
-        )
-    }
 }
 
 /// `IntoIterator` conversion for `ByteLines` to provide `Iterator` APIs.
@@ -87,6 +79,21 @@ where
     #[inline]
     fn into_iter(self) -> ByteLinesIter<B> {
         ByteLinesIter { inner: self }
+    }
+}
+
+impl<'a, B: BufRead> Lending<'a> for ByteLines<B> {
+    type Lend = Result<&'a [u8], Error>;
+}
+
+impl<B: BufRead> Lender for ByteLines<B> {
+    /// Retrieves a reference to the next line of bytes in the reader (if any).
+    fn next(&mut self) -> Option<<Self as Lending>::Lend> {
+        self.buffer.clear();
+        crate::util::handle_line(
+            self.reader.read_until(b'\n', &mut self.buffer),
+            &mut self.buffer,
+        )
     }
 }
 
@@ -181,7 +188,7 @@ mod tests {
         let file = File::open("./res/numbers.txt").unwrap();
         let mut lines = Vec::new();
 
-        for line in BufReader::new(file).byte_lines().into_iter() {
+        for line in IntoIterator::into_iter(BufReader::new(file).byte_lines()) {
             let line = line.unwrap();
             let line = String::from_utf8(line).unwrap();
 
@@ -198,7 +205,7 @@ mod tests {
         let file = File::open("./res/empty.txt").unwrap();
         let mut lines = Vec::new();
 
-        for line in BufReader::new(file).byte_lines().into_iter() {
+        for line in IntoIterator::into_iter(BufReader::new(file).byte_lines()) {
             let line = line.unwrap();
             let line = String::from_utf8(line).unwrap();
 
@@ -207,5 +214,21 @@ mod tests {
 
         assert_eq!(lines.len(), 1);
         assert_eq!(lines[0], "");
+    }
+
+    #[test]
+    fn test_buf_read() {
+        let buf_reader = BufReader::new(File::open("./res/numbers.txt").unwrap());
+        let mut lines = Vec::new();
+        let mut iter = buf_reader.byte_lines();
+        while let Some(line) = iter.next() {
+            let line = line.unwrap();
+            let line = String::from_utf8(line.to_vec()).unwrap();
+            lines.push(line);
+        }
+
+        for i in 0..9 {
+            assert_eq!(lines[i], format!("{}", i));
+        }
     }
 }
