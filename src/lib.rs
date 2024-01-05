@@ -11,15 +11,21 @@
 //! to that of writing a `loop` manually, due to the avoidance of allocations.
 #![doc(html_root_url = "https://docs.rs/bytelines/2.4.0")]
 use ::std::io::BufRead;
+
+#[cfg(feature = "tokio")]
 use ::tokio::io::AsyncBufRead;
 
 // mods
 mod std;
-mod tokio;
 mod util;
+
+#[cfg(feature = "tokio")]
+mod tokio;
 
 // expose all public APIs to keep the v2.x interface the same
 pub use crate::std::{ByteLines, ByteLinesIter, ByteLinesReader};
+
+#[cfg(feature = "tokio")]
 pub use crate::tokio::AsyncByteLines;
 
 /// Creates a new line reader from a stdlib `BufRead`.
@@ -32,6 +38,7 @@ where
 }
 
 /// Creates a new line reader from a Tokio `AsyncBufRead`.
+#[cfg(feature = "tokio")]
 #[inline]
 pub fn from_tokio<B>(reader: B) -> AsyncByteLines<B>
 where
