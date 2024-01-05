@@ -114,7 +114,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_basic_stream() {
-        use futures::StreamExt;
+        use futures_util::StreamExt;
 
         let file = File::open("./res/numbers.txt").await.unwrap();
         let brdr = BufReader::new(file);
