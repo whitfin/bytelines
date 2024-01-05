@@ -9,7 +9,7 @@
 //!
 //! Performance of [ByteLines](enum.ByteLines.html) is practically identical
 //! to that of writing a `loop` manually, due to the avoidance of allocations.
-#![doc(html_root_url = "https://docs.rs/bytelines/2.4.0")]
+#![doc(html_root_url = "https://docs.rs/bytelines/2.5.0")]
 use ::std::io::BufRead;
 
 #[cfg(feature = "tokio")]
