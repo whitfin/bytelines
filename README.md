@@ -10,7 +10,7 @@ This tool will be available via [Crates.io](https://crates.io/crates/bytelines),
 
 ```toml
 [dependencies]
-bytelines = "2.4"
+bytelines = "2.5"
 ```
 
 ### Usage
@@ -63,4 +63,11 @@ lines.into_stream().for_each(|line| {
 });
 ```
 
-The main difference is that the Tokio implementations yield `Result<Option<&[u8]>, _>` instead of `Option<Result<&[u8], _>>` for consistency with the exiting Tokio APIs.
+The main difference is that the Tokio implementations yield `Result<Option<&[u8]>, _>` instead of `Option<Result<&[u8], _>>` for consistency with the exiting Tokio APIs. If you don't want Tokio support, please disable default features:
+
+```toml
+[dependencies]
+bytelines = { version = "2.5", default-features = false }
+```
+
+This will be removed as a default feature in the next major bump (v3.0), but for now you can exclude it this way.
